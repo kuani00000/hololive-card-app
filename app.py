@@ -164,7 +164,7 @@ def load_data():
 
 df = load_data()
 
-# 画像を正方形にトリミングしてBase64化する関数
+# 画像を正方形にトリミング＆軽量リサイズ（150x150）してBase64化する関数（スマホメモリ対策）
 def get_cropped_square_base64(image_path):
     if image_path and os.path.exists(image_path):
         try:
@@ -172,14 +172,18 @@ def get_cropped_square_base64(image_path):
                 img = img.convert("RGB")
                 w, h = img.size
                 
+                # 正方形クロップ
                 if w < h:
                     img = img.crop((0, 0, w, w))
                 elif w > h:
                     left = (w - h) // 2
                     img = img.crop((left, 0, left + h, h))
                 
+                # ★スマホ描画制限対策：150x150pxへ軽量リサイズ
+                img = img.resize((150, 150), Image.Resampling.LANCZOS)
+                
                 buffer = io.BytesIO()
-                img.save(buffer, format="JPEG", quality=90)
+                img.save(buffer, format="JPEG", quality=85)
                 b64 = base64.b64encode(buffer.getvalue()).decode()
                 return f"data:image/jpeg;base64,{b64}"
         except Exception:
